@@ -485,7 +485,7 @@ function loadSave(k){var sv;try{sv=JSON.parse(localStorage.getItem(k))}catch(e){
  if(!sv.level)sv.level=1;if(sv.xp==null)sv.xp=0;if(!sv.bag)sv.bag=[];if(!sv.items)sv.items=[];if(sv.pts==null)sv.pts=0;if(sv.streak==null)sv.streak=0;
  if(!sv.tests)sv.tests={taken:0,passed:0};if(!sv.types)sv.types={};if(!sv.help)sv.help={};
  if(!sv.ver||sv.ver<3){sv.items.forEach(function(it){it._re=1;});sv.ver=3;}
- if(!sv.look)sv.look={hair:"#7a4a2a",shirt:"#ff8fab",pants:"#5a7fc0",skin:"#ffdcc0",style:2,beard:0};
+ if(!sv.look)sv.look={hair:"#7a4a2a",shirt:"#ff8fab",pants:"#5a7fc0",skin:"#ffdcc0",style:2,beard:0,char:"girl"};
  if(!sv.friends)sv.friends={};if(!sv.pedia)sv.pedia={};if(!sv.trees)sv.trees={};if(!sv.room)sv.room=[];if(!sv.caught)sv.caught={fish:0,bug:0};if(sv.gstreak==null)sv.gstreak=0;
  return sv;}
 function pname(){var p=profList().find(function(x){return x.id===PROF});return p?p.name:"Friend";}
@@ -506,7 +506,12 @@ function startProfile(id){test=null;PROF=null;closeDlg();PROF=id;save=loadSave(k
  scene="island";pl.x=33*T;pl.y=31*T;pl.tx=null;keys={};snapCam();store();
  if(!save.seen){save.seen=1;store();welcome();}else{toast("Welcome back, "+pname()+"!");if(hasMail())setTimeout(function(){toast("You have mail at your house! 📬")},2100);}}
 function cleanName(n){return String(n||"").replace(/[<>&"'`]/g,"").replace(/\s+/g," ").trim().slice(0,16);}
-function addProfile(n){n=cleanName(n);if(!n){var i=document.getElementById("newname");if(i)i.placeholder="Type a first name first!";return;}var l=profList(),id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);l.push({id:id,name:n});saveProfList(l);startProfile(id);}
+function addProfile(n){n=cleanName(n);if(!n){var i=document.getElementById("newname");if(i)i.placeholder="Type a first name first!";return;}var l=profList(),id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);pendName=n;charPick();}
+var pendName="";
+function charPick(){var h="<div style='text-align:center'><h3 style='font-size:28px'>🌴 Who's playing?</h3><div style='font-size:20px;font-weight:800;margin-bottom:10px'>Hi, "+esc(pendName)+"! Pick your character:</div><div class='grid' style='justify-content:center'>";
+ [["boy","👦 Boy"],["girl","👧 Girl"]].forEach(function(c){h+="<div class='item charpick' style='width:170px' onclick='pickChar(\""+c[0]+"\")'><img style='width:140px;height:140px;background:#e8f6e0;border-radius:24px' src='"+iconURL("kid:"+JSON.stringify(charLook(c[0])))+"'><b style='font-size:20px'>"+c[1]+"</b></div>";});
+ h+="</div><small>You can change hair and clothes anytime in the 👕 Style app.</small><br><button class='btn' onclick='startScreen()'>Back</button></div>";panel(h);}
+function pickChar(g){var n=cleanName(pendName);if(!n)return startScreen();var l=profList(),id=Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36);l.push({id:id,name:n,char:g});saveProfList(l);var sv=loadSave(keyOf(id));sv.look=charLook(g);try{localStorage.setItem(keyOf(id),JSON.stringify(sv))}catch(e){}pendName="";startProfile(id);}
 function delProfile(id){var l=profList(),p=l.find(function(x){return x.id===id});if(!p)return;if(!confirm("Delete "+p.name+"'s island and all progress on this device? This can't be undone."))return;
  try{localStorage.removeItem(keyOf(id))}catch(e){}saveProfList(l.filter(function(x){return x.id!==id}));if(PROF===id){PROF=null;save=loadSave("pi_none");}startScreen();}
 function startScreen(){if(PROF){store();}PROF=null;save=save||loadSave("pi_none");var l=profList(),h="<div style='text-align:center'><h3 style='font-size:30px'>🌴 Percent Island</h3><div style='font-size:20px;font-weight:800;margin-bottom:10px'>Who's playing?</div><div class='grid' style='justify-content:center'>";
@@ -716,8 +721,8 @@ var FR=[5,15,30,50];
 function fLevel(n){var l=0;FR.forEach(function(x){if(n>=x)l++;});return l;}
 function hearts(n){var l=fLevel(n);return "♥".repeat(l)+"♡".repeat(4-l);}
 var FGIFT={Maple:["Sunflower","Round Table","Cozy Rug","Comfy Bed"],Pip:["Tulip","Floor Lamp","Bookshelf","Bunny"],Coco:["Mushroom","Wooden Chair","Fish Tank","Kitty"],"Professor Hoot":["Sprout","Bookshelf","Piano","Oak Tree"]};
-var GREET={Maple:["Hi hi! I'm Maple. Want to practice percents with me, honeybun?","Oh, it's you, honeybun! I was hoping you'd stop by!","My favorite math buddy! Let's do some percents, honeybun!","Bestie!! I baked percent cookies… 50% chocolate chip, honeybun!","You're like family now, honeybun. Ready for a puzzle?"],
- Pip:["Hop hop! I'm Pip. I've got a percent puzzle for you, hoppity!","Yay, you're back! Hoppity hop!","I told everyone you're the best at percents, hoppity!","You're my best bunny buddy! Puzzle time, hoppity?","I practice percents every day so I can keep up with you, hoppity!"],
+var GREET={Maple:["Hi hi! I'm Maple. Want to practice percents with me, {name}?","Oh, it's you, {name}! I was hoping you'd stop by!","My favorite math partner! Let's do some percents, {name}!","{name}!! I baked percent cookies… 50% chocolate chip!","You're like family now, {name}. Ready for a puzzle?"],
+ Pip:["Hop hop! I'm Pip. I've got a percent puzzle for you, hoppity!","Yay, you're back! Hoppity hop!","I told everyone you're the best at percents, hoppity!","You're my best bunny friend! Puzzle time, hoppity?","I practice percents every day so I can keep up with you, hoppity!"],
  Coco:["Meow~ I'm Coco. Ready for a challenge? It'll be purrfect.","Oh! Hello again. Purrfect timing!","I saved my trickiest question just for you. Purrfect!","You're my favorite human on the whole island. Purrfect!","We make a purrfect team, you know."],
  "Professor Hoot":["Hoo-hoo! I'm Professor Hoot. Knowledge is the best treasure!","Ah, my bright young scholar returns! Hoo-hoo!","Your percent skills are growing like a mighty oak! Hoo-hoo!","I've written you into my book of Great Island Thinkers! Hoo!","You could teach a class yourself now! Hoo-hoo!"]};
 function addFriend(n,amt){if(!FGIFT[n])return"";var o=save.friends[n]||0,nw=o+amt;save.friends[n]=nw;var lo=fLevel(o),ln=fLevel(nw);if(ln<=lo)return"";
@@ -731,7 +736,7 @@ function talk(v){stopWalk();talkV=v;var dx=v.x-pl.x,dy=v.y-pl.y;pl.dir=Math.abs(
  if(v.hoot&&ready())ex+="<div class='note'><b>Your XP bar is full!</b> Ready for the Level-Up Test? ("+testLen(save.level)+" questions, get 80% to pass)</div><button class='btn r' onclick='startTest()'>Take Level-Up Test</button><br>";
  else if(ready())ex+="<div class='note'>Psst… your XP bar is full! Go see Professor Hoot for your Level-Up Test!</div>";
  ex+="<button class='btn g' onclick='ask(\"easy\",\""+v.n+"\")'>🌱 Easy (+10)</button><button class='btn b' onclick='ask(\"medium\",\""+v.n+"\")'>🌿 Medium (+25)</button><button class='btn r' onclick='ask(\"hard\",\""+v.n+"\")'>🌳 Hard (+50)</button><button class='btn' onclick='closeDlg()'>Bye!</button>";
- say(v,GREET[v.n][lv]+"\nWhich kind of question would you like?",ex);}
+ say(v,GREET[v.n][lv].replace(/\{name\}/g,pname())+"\nWhich kind of question would you like?",ex);}
 function qBody(q,fn){var h="";if(q.diff==="hard")h+="<div class='paper'>✏️ Grab a pencil and paper to work this one out! Write each step, then type your final number.</div>";
  h+="<div class='qtext'>"+esc(q.text)+"</div>";
  if(q.diff==="easy")return h+q.options.map(function(o,i){return"<button class='btn y opt' data-v=\""+escA(o)+"\" onclick='"+fn+"(this.dataset.v)'><small style='opacity:.5'>"+(i+1)+"</small> "+esc(o)+"</button>";}).join("");
@@ -848,8 +853,12 @@ function friendsUI(){var h="<h3>💗 Friends</h3>";vill.filter(function(v){retur
 var LOOKS={hair:["#2a1a10","#7a4a2a","#c88a4a","#f2d07a","#e86a4a","#8a6fc0","#4aa3e0","#ff8fb0"],shirt:["#ff8fab","#ffb04a","#ffd84a","#8ad86a","#4ac8b8","#4a7fc1","#8a6fe0","#ffffff","#e84a4a"],pants:["#5a7fc0","#3a4a5a","#a8744c","#e86a8a","#6ac08a","#f2f2f2"],skin:["#ffe4cc","#ffdcc0","#f2c9a0","#d8a070","#a86a40","#7a4a2a"]};
 function styleUI(){var L=save.look,h="<h3>👕 Style</h3><div style='display:flex;gap:16px;align-items:flex-start'><img src='"+iconURL("kid:"+JSON.stringify(L))+"' style='width:120px;height:120px;background:#e8f6e0;border-radius:24px'><div>";
  ["hair","shirt","pants","skin"].forEach(function(k){h+="<div><b style='display:inline-block;width:50px'>"+k[0].toUpperCase()+k.slice(1)+"</b>"+LOOKS[k].map(function(c){return"<span class='sw"+(L[k]===c?" on":"")+"' style='background:"+c+"' onclick='setLook(\""+k+"\",\""+c+"\")'></span>";}).join("")+"</div>";});
+ h+="<div><b style='display:inline-block;width:50px'>Kid</b>"+[["boy","👦 Boy"],["girl","👧 Girl"]].map(function(c){return"<button class='btn"+(L.char===c[0]?" g":"")+"' onclick='setChar(\""+c[0]+"\")'>"+c[1]+"</button>";}).join("")+"</div>";
  h+="<div><b style='display:inline-block;width:50px'>Hair</b>"+["Short","Long","Pigtails","Bun"].map(function(s,i){return"<button class='btn"+(L.style===i?" g":"")+"' onclick='setLook(\"style\","+i+")'>"+s+"</button>";}).join("")+"<button class='btn"+(L.beard?" g":"")+"' onclick='setLook(\"beard\","+(L.beard?0:1)+")'>Beard</button></div></div></div>";
  panel(h+BACK);}
+var CHARS={girl:{hair:"#7a4a2a",style:2,shirt:"#ff8fab",pants:"#5a7fc0",beard:0},boy:{hair:"#2a1a10",style:0,shirt:"#4a7fc1",pants:"#3a4a5a"}};
+function charLook(g,base){var L=Object.assign({},base||{hair:"#7a4a2a",shirt:"#ff8fab",pants:"#5a7fc0",skin:"#ffdcc0",style:2,beard:0},CHARS[g]);if(L.beard==null)L.beard=0;L.char=g;return L;}
+function setChar(g){save.look=charLook(g,save.look);store();sfx("menu");styleUI();}
 function setLook(k,v){save.look[k]=v;store();sfx("menu");styleUI();}
 function mapUI(){panel("<h3>🗺️ Island Map</h3><canvas id='mapc' width='512' height='384' style='width:100%;max-width:512px;border-radius:20px;background:#3fa3d6'></canvas><br>"+BACK);var c=document.getElementById("mapc"),g=c.getContext("2d"),s=512/(WW*T);
  g.drawImage(wcv,0,0,512,384);g.drawImage(gcv,0,0,512,384);g.font="800 11px sans-serif";g.textAlign="center";
