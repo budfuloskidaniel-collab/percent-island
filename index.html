@@ -75,35 +75,35 @@ function mkOpts(ans,unit){var s=new Set([ans]);var tries=0;
  var a=Array.from(s);a.sort(function(){return R()-.5});return a.map(function(v){return unit==="$"?money(v):unit==="%"?v+"%":String(v)});}
 function genEasy(t){if(t==null)t=rnd(0,3);var q;
  if(t===0){var k=rnd(5,95);q={text:"On a 10×10 grid (100 squares), "+k+" squares are shaded. What percent is shaded?",ans:k,unit:"%",
-  hint:"Percent means \"out of 100\". "+k+" out of 100 squares = "+k+"%."};}
+  hint:"Percent means \"out of 100\". "+k+" out of 100 squares = "+k+"%.",v:{k:k}};}
  else if(t===1){var p=pick([50,10,25,1]),n;
   if(p===50)n=2*rnd(5,100);else if(p===10)n=10*rnd(2,50);else if(p===25)n=4*rnd(3,50);else n=100*rnd(1,9);
   var a=n*p/100,h={50:"50% is HALF. Half of "+n+" is "+a+".",10:"10% means move the decimal one place left: "+n+" → "+a+".",25:"25% is half of half (a quarter). "+n+" ÷ 4 = "+a+".",1:"1% means move the decimal two places left: "+n+" → "+a+"."}[p];
-  q={text:"What is "+p+"% of "+n+"?",ans:a,unit:"",hint:h};}
- else if(t===2){var c=pick([5,10,25,35,50,75,90,15,60]);q={text:"How many cents is "+c+"% of one dollar?",ans:c,unit:"",hint:"A dollar is 100 cents, so "+c+"% of it is "+c+" out of 100 cents = "+c+" cents."};}
- else{var f=pick([[1,2,50],[1,4,25],[3,4,75],[1,10,10],[1,5,20],[2,5,40]]);q={text:"What percent is the fraction "+f[0]+"/"+f[1]+"?",ans:f[2],unit:"%",hint:"Make the bottom 100: "+f[0]+"/"+f[1]+" = "+f[2]+"/100 = "+f[2]+"%."};}
+  q={text:"What is "+p+"% of "+n+"?",ans:a,unit:"",hint:h,v:{p:p,n:n}};}
+ else if(t===2){var c=pick([5,10,25,35,50,75,90,15,60]);q={text:"How many cents is "+c+"% of one dollar?",ans:c,unit:"",hint:"A dollar is 100 cents, so "+c+"% of it is "+c+" out of 100 cents = "+c+" cents.",v:{c:c}};}
+ else{var f=pick([[1,2,50],[1,4,25],[3,4,75],[1,10,10],[1,5,20],[2,5,40]]);q={text:"What percent is the fraction "+f[0]+"/"+f[1]+"?",ans:f[2],unit:"%",hint:"Make the bottom 100: "+f[0]+"/"+f[1]+" = "+f[2]+"/100 = "+f[2]+"%.",v:{a:f[0],b:f[1],p:f[2]}};}
  q.diff="easy";q.type="e"+t;q.options=mkOpts(q.ans,q.unit);q.correct=q.unit==="%"?q.ans+"%":String(q.ans);return q;}
 function genMedium(t){if(t==null)t=rnd(0,2);var q;
  if(t===0){var p=pick([5,20,30,40,60,75,15]),n=20*rnd(1,10),a=p*n/100;
-  q={text:"What is "+p+"% of "+n+"?",ans:a,hint:"Start with 10% of "+n+" = "+(n/10)+".\n"+p+"% is "+(p/10)+" × that = "+a+".\n(Or: "+n+" × "+(p/100)+" = "+a+")"};}
+  q={text:"What is "+p+"% of "+n+"?",ans:a,hint:"Start with 10% of "+n+" = "+(n/10)+".\n"+p+"% is "+(p/10)+" × that = "+a+".\n(Or: "+n+" × "+(p/100)+" = "+a+")",v:{p:p,n:n}};}
  else if(t===1){var w,p2,part;do{w=pick([20,25,40,50,80,200,60]);p2=5*rnd(1,19);part=w*p2/100;}while(!Number.isInteger(part));
-  q={text:part+" is what percent of "+w+"?",ans:p2,hint:"Part ÷ whole, then × 100:\n"+part+" ÷ "+w+" = "+(part/w)+"\n"+(part/w)+" × 100 = "+p2+"%"};}
+  q={text:part+" is what percent of "+w+"?",ans:p2,hint:"Part ÷ whole, then × 100:\n"+part+" ÷ "+w+" = "+(part/w)+"\n"+(part/w)+" × 100 = "+p2+"%",v:{w:w,p:p2,part:part}};}
  else{var b=20*rnd(1,8),ten=b/10,five=ten/2;
-  q={text:"Your family's restaurant bill is "+money(b)+". How much is a 15% tip? (Hint: 10% + 5%)",ans:r2(ten+five),hint:"10% of "+money(b)+" = "+money(ten)+"\n5% is half of that = "+money(five)+"\n15% = "+money(ten)+" + "+money(five)+" = "+money(ten+five)};}
+  q={text:"Your family's restaurant bill is "+money(b)+". How much is a 15% tip? (Hint: 10% + 5%)",ans:r2(ten+five),hint:"10% of "+money(b)+" = "+money(ten)+"\n5% is half of that = "+money(five)+"\n15% = "+money(ten)+" + "+money(five)+" = "+money(ten+five),v:{b:b}};}
  q.diff="medium";q.type="m"+t;return q;}
 function genHard(t){if(t==null)t=rnd(0,3);var q;
  if(t===0){var p=pick([10,20,25,30,40,60,75]),W=20*rnd(2,15),part=p*W/100;
   q={text:pick(["Pip","Maple","Coco"])+" has read "+part+" pages of a book. That's "+p+"% of the book. How many pages is the whole book?",ans:W,
-  hint:"Bar model: "+p+"% is "+part+" pages.\nFind 1%: "+part+" ÷ "+p+" = "+(part/p)+"\nWhole (100%): "+(part/p)+" × 100 = "+W};}
+  hint:"Bar model: "+p+"% is "+part+" pages.\nFind 1%: "+part+" ÷ "+p+" = "+(part/p)+"\nWhole (100%): "+(part/p)+" × 100 = "+W,v:{p:p,W:W,part:part}};}
  else if(t===1){var P=20*rnd(2,10),d=pick([10,20,25,50]),tx=pick([5,10]),s=P*(100-d)/100,f=r2(s*(100+tx)/100);
   q={text:"A cozy sweater costs "+money(P)+". It's on sale for "+d+"% off, and then "+tx+"% sales tax is added to the sale price. What is the final price?",ans:f,
-  hint:"Step 1: "+d+"% of "+money(P)+" = "+money(P*d/100)+", so sale price = "+money(s)+"\nStep 2: "+tx+"% of "+money(s)+" = "+money(s*tx/100)+"\nStep 3: "+money(s)+" + "+money(s*tx/100)+" = "+money(f)};}
+  hint:"Step 1: "+d+"% of "+money(P)+" = "+money(P*d/100)+", so sale price = "+money(s)+"\nStep 2: "+tx+"% of "+money(s)+" = "+money(s*tx/100)+"\nStep 3: "+money(s)+" + "+money(s*tx/100)+" = "+money(f),v:{P:P,d:d,tx:tx}};}
  else if(t===2){var o,p3,nw,up=R()<.5;do{o=pick([20,40,50,80,200,60]);p3=5*rnd(1,up?20:18);nw=o*(up?100+p3:100-p3)/100;}while(!Number.isInteger(nw));
   q={text:"Last month the island had "+o+" fireflies. This month it has "+nw+". What is the percent "+(up?"increase":"decrease")+"?",ans:p3,
-  hint:"Change = "+(up?nw+" − "+o:o+" − "+nw)+" = "+Math.abs(nw-o)+"\nDivide by the ORIGINAL amount: "+Math.abs(nw-o)+" ÷ "+o+" = "+(Math.abs(nw-o)/o)+"\n× 100 = "+p3+"%"};}
+  hint:"Change = "+(up?nw+" − "+o:o+" − "+nw)+" = "+Math.abs(nw-o)+"\nDivide by the ORIGINAL amount: "+Math.abs(nw-o)+" ÷ "+o+" = "+(Math.abs(nw-o)/o)+"\n× 100 = "+p3+"%",v:{o:o,nw:nw,up:up,p:p3}};}
  else{var A,pa,B,off,a1,b1;do{A=20*rnd(2,8);pa=pick([10,20,25,50]);B=A+5*rnd(-3,3);off=5*rnd(1,4);a1=A*(100-pa)/100;b1=B-off;}while(a1===b1||b1<=0);
   q={text:"Store A sells a scooter for "+money(A)+" at "+pa+"% off. Store B sells it for "+money(B)+" with "+money(off)+" off. How many dollars cheaper is the better deal?",ans:r2(Math.abs(a1-b1)),
-  hint:"Store A: "+pa+"% of "+money(A)+" = "+money(A*pa/100)+", price = "+money(a1)+"\nStore B: "+money(B)+" − "+money(off)+" = "+money(b1)+"\nDifference: "+money(Math.abs(a1-b1))};}
+  hint:"Store A: "+pa+"% of "+money(A)+" = "+money(A*pa/100)+", price = "+money(a1)+"\nStore B: "+money(B)+" − "+money(off)+" = "+money(b1)+"\nDifference: "+money(Math.abs(a1-b1)),v:{A:A,pa:pa,B:B,off:off}};}
  q.diff="hard";q.type="h"+t;return q;}
 function parseAns(s){s=String(s).replace(/[$%,\s]/g,"").replace(/cents?|dollars?|pages?/gi,"");if(!/^-?\d*\.?\d+$/.test(s))return NaN;return parseFloat(s);}
 function checkAns(q,s){var v=parseAns(s);return !isNaN(v)&&Math.abs(v-q.ans)<0.011;}
@@ -133,7 +133,51 @@ function bagCap(l){return 10+5*Math.floor(l/5);}
 function testLen(l){return Math.min(20,5+Math.floor((l-1)/2));}
 function testPlan(l){var n=testLen(l),ph=Math.min(.5,.05+.05*l),pm=Math.min(.5,.25+.03*l),a=[];
  for(var i=0;i<n;i++){var r=R();a.push(r<ph?"hard":r<ph+pm?"medium":"easy");}if(l>=3&&a.indexOf("hard")<0)a[n-1]="hard";return a;}
-if(typeof module!=="undefined")module.exports={genEasy:genEasy,genMedium:genMedium,genHard:genHard,checkAns:checkAns,clueFor:clueFor,genType:genType,pickType:pickType,needHelp:needHelp,testLen:testLen,testPlan:testPlan,bagCap:bagCap,xpNeed:xpNeed,TYPES:TYPES,SCAF:SCAF,typeWeight:typeWeight,parseAns:parseAns};
+
+// ===== Professor Hoot walkthroughs: steps {t:text, eq:[arithmetic "lhs = rhs"], vis} =====
+function nf(x){x=r2(x);return String(x);}
+function walk(q){var v=q.v,S=[],T=q.type,tip,ans;function st(t,eq,vis){S.push({t:t,eq:eq||[],vis:vis||null});}
+ if(T==="e0"){st("Percent means \"out of 100\". This grid has exactly 100 squares, so every square is 1%.",["100 ÷ 100 = 1"],{grid:v.k});
+  st("Count the shaded squares: "+v.k+". That's "+v.k+" out of 100.",[v.k+" × 1 = "+v.k],{grid:v.k});ans=v.k;st("So "+v.k+" out of 100 = "+v.k+"%.",[],{grid:v.k});tip="When something is already out of 100, the count IS the percent!";}
+ else if(T==="e1"){var p=v.p,n=v.n,a=n*p/100;
+  if(p===50){st("50% is a benchmark: it means HALF.",[],{bar:[[50,"50%"]]});st("Half of "+n+": divide by 2.",[n+" ÷ 2 = "+nf(a)],{bar:[[50,nf(a)]],tot:n});}
+  else if(p===25){st("25% is a benchmark: it's half of half (a quarter).",[],{bar:[[25,"25%"]]});st("First find 50% (half).",[n+" ÷ 2 = "+nf(n/2)],{bar:[[50,nf(n/2)]],tot:n});st("Then half again gives 25%.",[nf(n/2)+" ÷ 2 = "+nf(a)],{bar:[[25,nf(a)]],tot:n});}
+  else if(p===10){st("10% is a benchmark: it's 1 out of every 10. Move the decimal one place left.",[],{bar:[[10,"10%"]]});st("10% of "+n+":",[n+" ÷ 10 = "+nf(a)],{bar:[[10,nf(a)]],tot:n});}
+  else{st("1% is a benchmark: 1 out of every 100. Move the decimal two places left.",[],{grid:1});st("1% of "+n+":",[n+" ÷ 100 = "+nf(a)]);}
+  ans=a;st("So "+p+"% of "+n+" = "+nf(a)+".",[]);tip="Benchmarks: 50% = ÷2 · 25% = ÷4 · 10% = ÷10 · 1% = ÷100.";}
+ else if(T==="e2"){st("A dollar is 100 cents — so a dollar is already \"out of 100\".",["100 ÷ 100 = 1"],{grid:v.c});st(v.c+"% means "+v.c+" out of 100 cents.",[v.c+" × 1 = "+v.c],{grid:v.c});ans=v.c;st("So "+v.c+"% of a dollar is "+v.c+" cents.",[]);tip="Percent of a dollar = that many cents. 25% = 25¢!";}
+ else if(T==="e3"){var m=100/v.b;st("Percent means out of 100. We want the bottom of "+v.a+"/"+v.b+" to become 100.",[]);
+  st("What times "+v.b+" makes 100?",["100 ÷ "+v.b+" = "+nf(m)]);st("Multiply the top AND bottom by "+nf(m)+".",[v.a+" × "+nf(m)+" = "+v.p,v.b+" × "+nf(m)+" = 100"],{grid:v.p});ans=v.p;st(v.a+"/"+v.b+" = "+v.p+"/100 = "+v.p+"%.",[],{grid:v.p});tip="Make the bottom 100 and the top is your percent.";}
+ else if(T==="m0"){var p=v.p,n=v.n,ten=n/10,a=p*n/100;st("part = percent × whole. Let's build "+p+"% from 10% pieces.",[]);
+  st("Find 10% of "+n+" (move the decimal one place left).",[n+" ÷ 10 = "+nf(ten)],{bar:[[10,nf(ten)]],tot:n});
+  if(p===5)st("5% is half of 10%.",[nf(ten)+" ÷ 2 = "+nf(a)],{bar:[[5,nf(a)]],tot:n});
+  else if(p===15)st("15% = 10% + 5%. 5% is half of 10%.",[nf(ten)+" ÷ 2 = "+nf(ten/2),nf(ten)+" + "+nf(ten/2)+" = "+nf(a)],{bar:[[10,nf(ten)],[5,nf(ten/2)]],tot:n});
+  else if(p===75)st("75% = 50% + 25%. Half, plus half of half.",[n+" ÷ 2 = "+nf(n/2),n+" ÷ 4 = "+nf(n/4),nf(n/2)+" + "+nf(n/4)+" = "+nf(a)],{bar:[[50,nf(n/2)],[25,nf(n/4)]],tot:n});
+  else st(p+"% is "+(p/10)+" pieces of 10%.",[nf(ten)+" × "+(p/10)+" = "+nf(a)],{bar:[[p,nf(a)]],tot:n});
+  st("Check with the decimal: "+p+"% = "+nf(p/100)+".",[n+" × "+nf(p/100)+" = "+nf(a)]);ans=a;st("So "+p+"% of "+n+" = "+nf(a)+".",[]);tip="Stuck? Find 10% first — then build any percent from it.";}
+ else if(T==="m1"){var d=v.part/v.w;st("percent = part ÷ whole × 100. Here the part is "+v.part+" and the whole is "+v.w+".",[],{bar:[[v.p,String(v.part)]],tot:v.w});
+  st("Divide the part by the whole.",[v.part+" ÷ "+v.w+" = "+nf(d)]);st("Multiply by 100 to turn it into a percent.",[nf(d)+" × 100 = "+v.p],{bar:[[v.p,v.p+"%"]]});ans=v.p;st("So "+v.part+" is "+v.p+"% of "+v.w+".",[]);tip="The number after \"of\" is the whole — it goes on the bottom.";}
+ else if(T==="m2"){var b=v.b,ten=b/10,five=ten/2,t=ten+five;st("15% = 10% + 5%. Let's find each piece of "+money(b)+".",[],{bar:[[10,"10%"],[5,"5%"]]});
+  st("10%: move the decimal one place left.",[money(b)+" ÷ 10 = "+money(ten)],{bar:[[10,money(ten)]],tot:money(b)});st("5% is half of 10%.",[money(ten)+" ÷ 2 = "+money(five)],{bar:[[10,money(ten)],[5,money(five)]],tot:money(b)});
+  st("Add them for 15%.",[money(ten)+" + "+money(five)+" = "+money(t)]);ans=r2(t);st("The 15% tip is "+money(t)+".",[]);tip="Tip trick: 10%, then half of it, then add!";}
+ else if(T==="h0"){var one=v.part/v.p;st("Bar model: the whole book is 100%. We know "+v.p+"% of it is "+v.part+" pages.",[],{bar:[[v.p,v.part+" pages"]],tot:"? pages",q:1});
+  st("Find 1% by dividing the part by the percent.",[v.part+" ÷ "+v.p+" = "+nf(one)],{bar:[[1,""],[v.p-1,v.part+""]],tot:"?"});
+  st("The whole is 100%, so multiply 1% by 100.",[nf(one)+" × 100 = "+v.W],{bar:[[v.p,v.part+""]],tot:v.W+" pages"});ans=v.W;st("The whole book is "+v.W+" pages. Check: "+v.p+"% of "+v.W+":",[v.W+" × "+v.p+" ÷ 100 = "+v.part]);tip="Find-the-whole: get 1% (or 10%) first, then scale up to 100%.";}
+ else if(T==="h1"){var P=v.P,off=P*v.d/100,s=P-off,tx=s*v.tx/100,f=r2(s+tx);st("Two steps, IN ORDER: first the discount, then tax on the sale price.",[]);
+  st("Discount: "+v.d+"% of "+money(P)+".",[money(P)+" × "+v.d+" ÷ 100 = "+money(off)],{bar:[[100-v.d,"pay"],[v.d,"off"]],tot:money(P)});
+  st("Sale price = original − discount.",[money(P)+" − "+money(off)+" = "+money(s)]);st("Tax: "+v.tx+"% of the SALE price.",[money(s)+" × "+v.tx+" ÷ 100 = "+money(tx)]);
+  st("Final price = sale price + tax.",[money(s)+" + "+money(tx)+" = "+money(f)]);ans=f;st("The final price is "+money(f)+".",[]);tip="Discount first, THEN tax — the tax is on the sale price.";}
+ else if(T==="h2"){var ch=Math.abs(v.nw-v.o),d=ch/v.o;st("percent change = change ÷ ORIGINAL × 100. The original (last month) is "+v.o+".",[]);
+  st("Find the change.",[(v.up?v.nw+" − "+v.o:v.o+" − "+v.nw)+" = "+ch],{bar:[[100,"original "+v.o]],tot:v.o});st("Divide by the original amount.",[ch+" ÷ "+v.o+" = "+nf(d)]);
+  st("Multiply by 100.",[nf(d)+" × 100 = "+v.p]);ans=v.p;st("That's a "+v.p+"% "+(v.up?"increase":"decrease")+".",[]);tip="Always divide by the ORIGINAL (the 'before' number).";}
+ else{var A=v.A,oa=A*v.pa/100,a1=A-oa,b1=v.B-v.off,df=r2(Math.abs(a1-b1));st("Work out each store's final price separately, then compare.",[]);
+  st("Store A: "+v.pa+"% of "+money(A)+".",[money(A)+" × "+v.pa+" ÷ 100 = "+money(oa),money(A)+" − "+money(oa)+" = "+money(a1)],{bar:[[100-v.pa,"pay"],[v.pa,"off"]],tot:money(A)});
+  st("Store B: just subtract the dollars off.",[money(v.B)+" − "+money(v.off)+" = "+money(b1)]);st("Difference between the two prices.",[money(Math.max(a1,b1))+" − "+money(Math.min(a1,b1))+" = "+money(df)]);
+  ans=df;st("Store "+(a1<b1?"A":"B")+" is cheaper by "+money(df)+".",[]);tip="Compare final prices, not the discounts!";}
+ return{steps:S,tip:tip,ans:ans};}
+function evalEq(e){var m=e.split(" = ");if(m.length!==2)return null;var l=m[0].replace(/\$/g,"").replace(/×/g,"*").replace(/÷/g,"/").replace(/−/g,"-");if(!/^[\d.\s+\-*/]+$/.test(l))return null;
+ var L=Function("return "+l)(),Rv=parseFloat(m[1].replace(/\$/g,""));return{l:L,r:Rv,ok:Math.abs(L-Rv)<0.011};}
+if(typeof module!=="undefined")module.exports={walk:walk,evalEq:evalEq,genEasy:genEasy,genMedium:genMedium,genHard:genHard,checkAns:checkAns,clueFor:clueFor,genType:genType,pickType:pickType,needHelp:needHelp,testLen:testLen,testPlan:testPlan,bagCap:bagCap,xpNeed:xpNeed,TYPES:TYPES,SCAF:SCAF,typeWeight:typeWeight,parseAns:parseAns};
 </script><script>
 // ================= Percent Island — game =================
 var cv=document.getElementById("c"),ctx=cv.getContext("2d"),dlg=document.getElementById("dlg");
@@ -487,6 +531,7 @@ function loadSave(k){var sv;try{sv=JSON.parse(localStorage.getItem(k))}catch(e){
  if(!sv.ver||sv.ver<3){sv.items.forEach(function(it){it._re=1;});sv.ver=3;}
  if(!sv.look)sv.look={hair:"#7a4a2a",shirt:"#ff8fab",pants:"#5a7fc0",skin:"#ffdcc0",style:2,beard:0,char:"girl"};
  if(!sv.friends)sv.friends={};if(!sv.pedia)sv.pedia={};if(!sv.trees)sv.trees={};if(!sv.room)sv.room=[];if(!sv.caught)sv.caught={fish:0,bug:0};if(sv.gstreak==null)sv.gstreak=0;
+ if(!sv.hoot)sv.hoot={on:1,cd:{},off:{},st:{}};["cd","off","st"].forEach(function(k){if(!sv.hoot[k])sv.hoot[k]={};});if(sv.hoot.on==null)sv.hoot.on=1;
  return sv;}
 function pname(){var p=profList().find(function(x){return x.id===PROF});return p?p.name:"Friend";}
 function need(){return xpNeed(save.level)}function cap(){return bagCap(save.level)}function ready(){return save.xp>=need()}
@@ -530,7 +575,11 @@ var vill=[{n:"Maple",sp:"bear",shirt:"#f6a04b",home:"maple",voice:190,col:"#e890
 vill.forEach(function(v,i){var b=BLD.find(function(b){return b.id===v.home}),d=bdoor(b);v.hx=d.x+(v.shop?0:20);v.hy=d.y+(v.shop?24:36);v.x=v.hx;v.y=v.hy;v.dir=0;v.ph=0;v.seed=i*1.7;v.wait=Math.random()*3;v.walking=0;});
 function V(n){return vill.find(function(x){return x.n===n})}
 function villStand(x,y){var t=tileAt(x,y);return(t===GRASS||t===PATH||t===SAND)&&tileAt(x-6,y)!==-1&&passable(tileAt(x-7,y))&&passable(tileAt(x+7,y))&&!hitStatic(x,y,8);}
-function updVill(v,dt){if(v.still||v===talkV){v.walking=0;if(v===talkV){var dx=pl.x-v.x,dy=pl.y-v.y;v.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?1:2):(dy<0?3:0);}return;}
+function moveTo(v,x,y,sp,dt){var dx=x-v.x,dy=y-v.y,d=Math.hypot(dx,dy);if(d<3){v.walking=0;return true;}var m=Math.min(d,sp*dt);v.x+=dx/d*m;v.y+=dy/d*m;v.walking=1;v.ph+=dt*11;v.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?1:2):(dy<0?3:0);return false;}
+function updVill(v,dt){if(v.hootWalk&&v!==talkV&&!(save.hoot&&save.hoot.pend)){v.hootWalk=0;v.goHome=1;}
+ if(v.hootWalk)return;
+ if(v.goHome&&v!==talkV){v.tgt=null;if(moveTo(v,v.hx,v.hy,70,dt)){v.goHome=0;v.wait=2;}return;}
+if(v.still||v===talkV){v.walking=0;if(v===talkV){var dx=pl.x-v.x,dy=pl.y-v.y;v.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?1:2):(dy<0?3:0);}return;}
  v.wait-=dt;if(v.wait>0){v.walking=0;return;}
  if(!v.tgt){var a=Math.random()*6.28,r=Math.random()*T*(v.hoot?2:3.4);v.tgt={x:v.hx+Math.cos(a)*r,y:v.hy+Math.sin(a)*r*.7};}
  var dx=v.tgt.x-v.x,dy=v.tgt.y-v.y,d=Math.hypot(dx,dy);if(d<3){v.tgt=null;v.wait=1.5+Math.random()*4;v.walking=0;return;}
@@ -753,17 +802,17 @@ function clueBar(){var q=quiz,el=document.getElementById("clue");if(!q||!el)retu
   if(save.pts<cost)h+="<small> You need "+(cost-save.pts)+" more points for this clue — you can do it! Try an Easy question to earn some.</small>";}
  el.innerHTML=h;}
 function buyClue(){var q=quiz;if(!q)return;var cost=CLUE[q.diff][q.cl||0];if(save.pts<cost)return;save.pts-=cost;save.clues[q.diff][q.cl||0]++;q.cl=(q.cl||0)+1;store();sfx("menu");clueBar();}
-function record(q,ok){var t=save.types[q.type]||(save.types[q.type]={n:0,c:0,h:[]});t.n++;if(ok)t.c++;t.h.push(ok?1:0);if(t.h.length>8)t.h.shift();return t;}
+function record(q,ok){var t=save.types[q.type]||(save.types[q.type]={n:0,c:0,h:[]});t.n++;if(ok)t.c++;t.h.push(ok?1:0);if(t.h.length>8)t.h.shift();if(save.hoot&&t.h.length>=2&&t.h[t.h.length-1]&&t.h[t.h.length-2])delete save.hoot.off[q.type];return t;}
 function corr(q){return q.diff==="easy"?q.correct:(/\$/.test(q.text)&&!/percent/.test(q.text)?money(q.ans):q.ans);}
 var YAY=["Amazing job!","You're a percent superstar!","Wow, nailed it!","Brilliant thinking!","Fantastic!"],OOPS=["Ooh, so close! Let's look at it together.","Not quite — mistakes help our brains grow!","Good try! Here's a trick:"];
 function answer(s){var q=quiz;if(!q)return;if(String(s).trim()===""&&q.diff!=="easy")return;var ok=q.diff==="easy"?s===q.correct:checkAns(q,s),st=save.stats[q.diff],v=V(q.who),extra="";st[0]++;
- var t=record(q,ok);
+ var t=record(q,ok);if(!ok&&needHelp(t.h))hootQueue(q.type);
  if(q.scaf)save.help[q.scaf]=2;else if(q.helped)delete save.help[q.helped];
  else if(!ok&&needHelp(t.h)){save.help[q.type]=1;extra="<div class='hint'>💛 "+v.n+": \"Let's slow down and practice "+TYPES[q.type]+" with a warm-up next time!\"</div>";}
  var fg=addFriend(v.n,ok?2:1);
  var again="<button class='btn g' onclick='ask(\""+q.diff+"\",\""+q.who+"\")'>"+(ok?"Another one!":"Try a new one")+"</button>";
- if(ok){st[1]++;save.streak++;var g=PTS[q.diff]+(save.streak%5===0?20:0),was=ready();save.pts+=g;save.xp=Math.min(need(),save.xp+PTS[q.diff]);store();burst();sfx("correct");sparkle(v.x,v.y-60,"♥","#ff6a9a");
-  say(v,pick(YAY)+" You earned +"+g+" points and +"+PTS[q.diff]+" XP!",(save.streak%5===0?"<div class='note'>🔥 Includes a 5-in-a-row bonus!</div>":"")+(!was&&ready()?"<div class='hint'>🌟 Your XP bar is full! Visit Professor Hoot for your Level-Up Test!</div>":"")+fg+again+"<button class='btn' onclick='talk(V(\""+q.who+"\"))'>Change level</button><button class='btn' onclick='closeDlg()'>Done</button>");}
+ if(ok){st[1]++;save.streak++;var g=PTS[q.diff]+(save.streak%5===0?20:0)+(q.wt?5:0),was=ready();save.pts+=g;save.xp=Math.min(need(),save.xp+PTS[q.diff]);store();burst();sfx("correct");sparkle(v.x,v.y-60,"♥","#ff6a9a");
+  say(v,pick(YAY)+" You earned +"+g+" points and +"+PTS[q.diff]+" XP!",(q.wt?"<div class='note'>🦉 You got it! Includes a +5 \"you got it\" bonus from Professor Hoot.</div>":"")+(save.streak%5===0?"<div class='note'>🔥 Includes a 5-in-a-row bonus!</div>":"")+(!was&&ready()?"<div class='hint'>🌟 Your XP bar is full! Visit Professor Hoot for your Level-Up Test!</div>":"")+fg+again+"<button class='btn' onclick='talk(V(\""+q.who+"\"))'>Change level</button><button class='btn' onclick='closeDlg()'>Done</button>");}
  else{save.streak=0;store();sfx("wrong");
   say(v,pick(OOPS),"<div class='qtext'>"+esc(q.text)+"</div><div class='hint'>💡 "+esc(q.hint)+"\n\nThe answer is <b>"+corr(q)+"</b>.</div>"+extra+fg+again+"<button class='btn' onclick='closeDlg()'>Take a break</button>");}}
 // ---------- level-up test ----------
@@ -864,14 +913,49 @@ function mapUI(){panel("<h3>🗺️ Island Map</h3><canvas id='mapc' width='512'
  g.drawImage(wcv,0,0,512,384);g.drawImage(gcv,0,0,512,384);g.font="800 11px sans-serif";g.textAlign="center";
  BLD.forEach(function(b){var x=(b.x+b.w/2)*T*s,y=(b.y+b.h/2)*T*s;g.fillStyle=b.roof;rr(g,x-9,y-7,18,14,4);g.fill();g.fillStyle="#5a3a1a";g.fillText(b.id==="home"?"Home":b.sign||(b.id[0].toUpperCase()+b.id.slice(1)),x,y+20);});
  vill.forEach(function(v){circ(g,v.x*s,v.y*s,4,v.col);});var px=(scene==="house"?bdoor(HOME).x:pl.x)*s,py=(scene==="house"?bdoor(HOME).y:pl.y)*s;circ(g,px,py,7,"#fff");circ(g,px,py,5,"#e84a4a");}
+
+// ---------- Professor Hoot walkthroughs ----------
+var WT=null;
+function hst(k){var S=save.hoot.st;return S[k]||(S[k]={o:0,a:0,d:0,r:0});}
+function hootQueue(k){var H=save.hoot;if(!H||!H.on||H.off[k]||H.pend)return;var c=H.cd[k],t=save.types[k];if(c&&c.day===todayStr()&&t&&t.n<c.n+5)return;H.pend=k;store();}
+function hootFree(){return save.hoot&&save.hoot.pend&&!open&&!test&&!fishing&&!swing&&!fadeBusy&&scene==="island"&&(typeof PROF==="undefined"||PROF);}
+function hootTick(dt){if(!hootFree())return;var v=V("Professor Hoot");if(!v)return;
+ if(!v.hootWalk){v.hootWalk=1;v.goHome=0;v.tgt=null;var d=Math.hypot(v.x-pl.x,v.y-pl.y);if(d>12*T){var a=Math.atan2(v.y-pl.y,v.x-pl.x);v.x=pl.x+Math.cos(a)*9*T;v.y=pl.y+Math.sin(a)*9*T;}}
+ var a2=Math.atan2(v.y-pl.y,v.x-pl.x);if(moveTo(v,pl.x+Math.cos(a2)*24,pl.y+Math.sin(a2)*24,85,dt))hootOffer();}
+function hootOffer(){var H=save.hoot,k=H.pend,v=V("Professor Hoot");if(!k)return;hst(k).o++;H.cd[k]={n:(save.types[k]||{n:0}).n,day:todayStr()};store();talkV=v;sfx("menu");
+ say(v,"Hoo-hoo! Looks like these are tricky, "+pname()+". Want me to show you how I'd solve one?","<div class='qhead'>"+TYPES[k]+"</div><button class='btn g' id='hootyes' onclick='hootYes()'>Yes, show me</button><button class='btn' id='hootno' onclick='hootNo()'>No thanks, I've got it</button>");}
+function hootYes(){var H=save.hoot,k=H.pend;if(!k)return;H.pend=null;hst(k).a++;H.off[k]=1;store();wtStart(k,"offer");}
+function hootNo(){var H=save.hoot,k=H.pend;if(!k)return;H.pend=null;hst(k).d++;H.cd[k]={n:(save.types[k]||{n:0}).n,day:todayStr()};store();
+ say(V("Professor Hoot"),"No problem! You can always ask me from the ❓ Help app on your phone. Hoo!","<button class='btn g' onclick='closeDlg()'>OK</button>");}
+function hootReq(k){hst(k).r++;store();wtStart(k,"req");}
+function wtStart(k,src){var q=genType(k);WT={k:k,q:q,w:walk(q),i:0,src:src};talkV=V("Professor Hoot");wtShow();}
+function visSVG(vz){if(!vz)return"";var h="";
+ if(vz.grid!=null){h="<svg class='wtvis' viewBox='0 0 112 112' width='170' height='170'>";for(var i=0;i<100;i++){var x=2+(i%10)*11,y=2+Math.floor(i/10)*11;h+="<rect x='"+x+"' y='"+y+"' width='10' height='10' rx='2' fill='"+(i<vz.grid?"#8a6fc0":"#efe6d2")+"'/>";}return h+"</svg>";}
+ var W=320,x=10,cols=["#8a6fc0","#ffb04a","#4ac8b8"];h="<svg class='wtvis' viewBox='0 0 340 74' width='340' height='74'>";
+ if(vz.tot!=null)h+="<text x='170' y='13' text-anchor='middle' font-size='12' font-weight='800' fill='#7a5a32'>whole = "+esc(String(vz.tot))+" (100%)</text>";
+ h+="<rect x='10' y='20' width='"+W+"' height='30' rx='8' fill='#efe6d2' stroke='#c8b08a'/>";
+ vz.bar.forEach(function(b,j){var w=W*b[0]/100;h+="<rect x='"+x+"' y='20' width='"+w+"' height='30' rx='6' fill='"+cols[j%3]+"'/>";if(b[1]!=="")h+="<text x='"+(x+w/2)+"' y='40' text-anchor='middle' font-size='11' font-weight='800' fill='#fff'>"+esc(String(b[1]))+"</text><text x='"+(x+w/2)+"' y='66' text-anchor='middle' font-size='10' fill='#7a5a32'>"+b[0]+"%</text>";x+=w;});
+ for(var t=1;t<10;t++)h+="<line x1='"+(10+W*t/10)+"' y1='20' x2='"+(10+W*t/10)+"' y2='50' stroke='rgba(0,0,0,.12)'/>";return h+"</svg>";}
+function wtShow(){var w=WT.w,s=w.steps[WT.i],n=w.steps.length,v=V("Professor Hoot");talkV=v;
+ var eq=s.eq.length?"<div class='hint wteq' style='font-size:20px;font-weight:800'>"+s.eq.map(esc).join("<br>")+"</div>":"";
+ say(v,s.t,"<div class='qhead'>🦉 HOOT'S WALKTHROUGH · "+TYPES[WT.k]+" · step "+(WT.i+1)+" of "+n+"</div><div class='qtext' style='font-size:15px'>"+esc(WT.q.text)+"</div>"+eq+"<div style='text-align:center'>"+visSVG(s.vis)+"</div>"+
+  (WT.i>0?"<button class='btn' id='wtback' onclick='wtNav(-1)'>◀ Back</button>":"")+"<button class='btn g' id='wtnext' onclick='wtNav(1)'>"+(WT.i<n-1?"Next ▶":"Finish ▶")+"</button><button class='btn' onclick='closeDlg()'>Close</button>");}
+function wtNav(d){if(!WT)return;WT.i+=d;if(WT.i<0)WT.i=0;sfx("menu");if(WT.i>=WT.w.steps.length)wtTip();else wtShow();}
+function wtTip(){var v=V("Professor Hoot");talkV=v;say(v,"🌟 Hoot's tip: "+WT.w.tip,"<div class='note'>Watching is free — no points for watching, but you'll earn points (plus a +5 bonus) if you solve one yourself!</div><button class='btn g' id='wtyour' onclick='wtYour()'>Your turn!</button><button class='btn' onclick='wtNav(-1)'>◀ Back</button><button class='btn' onclick='closeDlg()'>Maybe later</button>");}
+function wtYour(){var k=WT.k,q=genType(k),v=V("Professor Hoot");WT=null;q.wt=1;q.who=v.n;quiz=q;talkV=v;
+ say(v,"Your turn, "+pname()+"! Solve this one the same way I did.","<div class='qhead'>YOUR TURN · "+q.diff.toUpperCase()+" · +"+PTS[q.diff]+" ⭐ (+5 bonus)</div>"+qBody(q,"answer")+" <button class='btn' onclick='closeDlg()'>Later</button>");}
+function hootToggle(){save.hoot.on=save.hoot.on?0:1;if(!save.hoot.on)save.hoot.pend=null;store();sfx("menu");helpUI();}
+function hootPick(){var h="<h3>🦉 Show me how</h3><div class='note'>Pick a skill and Professor Hoot will walk you through one, step by step.</div><div class='grid'>";
+ for(var k in TYPES)h+="<button class='btn b wtpick' onclick='hootReq(\""+k+"\")'>"+TYPES[k]+"</button>";panel(h+"</div>"+BACK);}
 function helpUI(){panel("<h3>❓ How to Play</h3><div class='note'><b>Move:</b> Arrow keys / WASD (hold Shift to run) or click where to walk.<br><b>Space / Enter:</b> talk, catch bugs, pick up, shake trees, fish, enter your home.<br><b>B</b> bag · <b>P</b> phone · <b>M</b> sound · <b>Esc</b> close · <b>1–4</b> pick an Easy answer.</div>"+
- "<div class='note'><b>Earn ⭐ & XP</b> by answering villagers' percent questions. Fill your XP bar, then pass Professor Hoot's Level-Up Test (80%).<br><b>Fishing:</b> face water, press Space, wait for the big splash and press Space again.<br><b>Bugs:</b> sneak up (don't run!) and press Space.<br><b>Fruit:</b> shake trees once a day.<br><b>Mail:</b> a gift waits in your mailbox every day.</div>"+BACK);}
+ "<div class='note'><b>Earn ⭐ & XP</b> by answering villagers' percent questions. Fill your XP bar, then pass Professor Hoot's Level-Up Test (80%).<br><b>Fishing:</b> face water, press Space, wait for the big splash and press Space again.<br><b>Bugs:</b> sneak up (don't run!) and press Space.<br><b>Fruit:</b> shake trees once a day.<br><b>Mail:</b> a gift waits in your mailbox every day.</div>"+
+ "<div class='note'>🦉 <b>Professor Hoot</b> can show you step by step how to solve any kind of question.<br><button class='btn g' id='showme' onclick='hootPick()'>Show me how</button> <button class='btn' id='hoottog' onclick='hootToggle()'>Hoot's help offers: "+(save.hoot.on?"On":"Off")+"</button></div>"+BACK);}
 function stats(){var s=save.stats,h="<h3>📊 Parent Stats — "+esc(pname())+"</h3>Level <b>"+save.level+"</b> · XP "+save.xp+"/"+need()+" · Level-up tests: "+save.tests.passed+" passed / "+save.tests.taken+" taken · ⭐ "+save.pts+" · Bag "+save.bag.length+"/"+cap()+" · On island "+save.items.length+" · In house "+save.room.length+
  "<br>Fish caught "+(save.caught.fish||0)+" · Bugs caught "+(save.caught.bug||0)+" · Critter Log "+Object.keys(save.pedia).length+"/"+(FISH.length+BUGS.length)+" · Login streak "+(save.gstreak||0)+" · Tilly's percent deals: "+(save.deals?save.deals.c+"/"+save.deals.n+" correct":"none yet")+
  "<table class='t'><tr><th>Level</th><th>Answered</th><th>Correct</th><th>Accuracy</th><th>Clues (1st / 2nd)</th></tr>";
  for(var d of["easy","medium","hard"])h+="<tr><td>"+d+"</td><td>"+s[d][0]+"</td><td>"+s[d][1]+"</td><td>"+(s[d][0]?Math.round(100*s[d][1]/s[d][0])+"%":"–")+"</td><td>"+save.clues[d][0]+" / "+save.clues[d][1]+"</td></tr>";
- h+="</table><b>By skill</b> (red = needs practice: under 60% with 3+ tries, or getting extra help now)<table class='t'><tr><th>Skill</th><th>Tries</th><th>Correct</th><th>Accuracy</th><th>Last 4</th></tr>";
- for(var k in TYPES){var t=save.types[k],n=t?t.n:0,c=t?t.c:0,weak=(n>=3&&c/n<.6)||save.help[k];h+="<tr class='"+(weak?"weak":"")+"'><td>"+(weak?"⚠️ ":"")+TYPES[k]+"</td><td>"+n+"</td><td>"+c+"</td><td>"+(n?Math.round(100*c/n)+"%":"–")+"</td><td>"+(t?t.h.slice(-4).map(function(x){return x?"✅":"❌";}).join(""):"")+"</td></tr>";}
+ h+="</table><b>By skill</b> (red = needs practice: under 60% with 3+ tries, or getting extra help now)<table class='t'><tr><th>Skill</th><th>Tries</th><th>Correct</th><th>Accuracy</th><th>Last 4</th><th>🦉 Hoot offered / accepted / declined / requested</th></tr>";
+ for(var k in TYPES){var t=save.types[k],n=t?t.n:0,c=t?t.c:0,weak=(n>=3&&c/n<.6)||save.help[k];h+="<tr class='"+(weak?"weak":"")+"'><td>"+(weak?"⚠️ ":"")+TYPES[k]+"</td><td>"+n+"</td><td>"+c+"</td><td>"+(n?Math.round(100*c/n)+"%":"–")+"</td><td>"+(t?t.h.slice(-4).map(function(x){return x?"✅":"❌";}).join(""):"")+"</td><td>"+(function(z){return z?z.o+" / "+z.a+" / "+z.d+" / "+z.r:"–";})(save.hoot.st[k])+"</td></tr>";}
  h+="</table><b>Friendship</b>: "+vill.filter(function(v){return!v.shop;}).map(function(v){return v.n+" "+hearts(save.friends[v.n]||0);}).join(" · ");
  panel(h+"<br><button class='btn' onclick='closeDlg()'>Close</button><button class='btn r' onclick='if(confirm(\"Erase ALL progress for "+esc(pname())+"?\")){delProfileNoConfirm()}'>Reset progress</button>");}
 // ---------- input ----------
@@ -900,7 +984,7 @@ document.getElementById("phoneb").innerHTML="<svg viewBox='0 0 24 24'><rect x='6
 function resize(){dpr=Math.min(2,window.devicePixelRatio||1);cv.width=Math.round(innerWidth*dpr);cv.height=Math.round(innerHeight*dpr);zoom=curZoom();updCam(0,true);}
 window.addEventListener("resize",resize);
 var last=performance.now();
-function update(dt){gt+=dt;updPlayer(dt);if(scene==="island")vill.forEach(function(v){updVill(v,dt);});spawnBugs(dt);updBugs(dt);updFishing(dt);updSwing(dt);updDrops(dt);TREES.forEach(function(t){if(t.shake>0)t.shake-=dt;});updParts(dt);updCam(dt);}
+function update(dt){gt+=dt;updPlayer(dt);hootTick(dt);if(scene==="island")vill.forEach(function(v){updVill(v,dt);});spawnBugs(dt);updBugs(dt);updFishing(dt);updSwing(dt);updDrops(dt);TREES.forEach(function(t){if(t.shake>0)t.shake-=dt;});updParts(dt);updCam(dt);}
 function loop(now){var dt=Math.min(.05,Math.max(0,(now-last)/1000));last=now;try{update(dt);render();}catch(err){console.error(err);}requestAnimationFrame(loop);}
 prerender();save=loadSave("pi_none");rebuildColliders();resize();store();updMute();updClock();setInterval(updClock,1000);requestAnimationFrame(loop);startScreen();
 </script></body></html>
