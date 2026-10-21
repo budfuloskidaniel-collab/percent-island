@@ -575,7 +575,7 @@ var vill=[{n:"Maple",sp:"bear",shirt:"#f6a04b",home:"maple",voice:190,col:"#e890
 vill.forEach(function(v,i){var b=BLD.find(function(b){return b.id===v.home}),d=bdoor(b);v.hx=d.x+(v.shop?0:20);v.hy=d.y+(v.shop?24:36);v.x=v.hx;v.y=v.hy;v.dir=0;v.ph=0;v.seed=i*1.7;v.wait=Math.random()*3;v.walking=0;});
 function V(n){return vill.find(function(x){return x.n===n})}
 function villStand(x,y){var t=tileAt(x,y);return(t===GRASS||t===PATH||t===SAND)&&tileAt(x-6,y)!==-1&&passable(tileAt(x-7,y))&&passable(tileAt(x+7,y))&&!hitStatic(x,y,8);}
-function moveTo(v,x,y,sp,dt){var dx=x-v.x,dy=y-v.y,d=Math.hypot(dx,dy);if(d<3){v.walking=0;return true;}var m=Math.min(d,sp*dt);v.x+=dx/d*m;v.y+=dy/d*m;v.walking=1;v.ph+=dt*11;v.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?1:2):(dy<0?3:0);return false;}
+function moveTo(v,x,y,sp,dt){var dx=x-v.x,dy=y-v.y,d=Math.hypot(dx,dy);if(d<3){v.walking=0;return true;}var m=Math.min(d,sp*dt),nx=v.x+dx/d*m,ny=v.y+dy/d*m;if(scene==='island'&&Math.hypot(nx-pl.x,ny-pl.y)<22&&Math.hypot(nx-pl.x,ny-pl.y)<Math.hypot(v.x-pl.x,v.y-pl.y)){v.walking=0;return false;}v.x=nx;v.y=ny;v.walking=1;v.ph+=dt*11;v.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?1:2):(dy<0?3:0);return false;}
 function updVill(v,dt){if(v.hootWalk&&v!==talkV&&!(save.hoot&&save.hoot.pend)){v.hootWalk=0;v.goHome=1;}
  if(v.hootWalk)return;
  if(v.goHome&&v!==talkV){v.tgt=null;if(moveTo(v,v.hx,v.hy,70,dt)){v.goHome=0;v.wait=2;}return;}
@@ -584,11 +584,17 @@ if(v.still||v===talkV){v.walking=0;if(v===talkV){var dx=pl.x-v.x,dy=pl.y-v.y;v.d
  if(!v.tgt){var a=Math.random()*6.28,r=Math.random()*T*(v.hoot?2:3.4);v.tgt={x:v.hx+Math.cos(a)*r,y:v.hy+Math.sin(a)*r*.7};}
  var dx=v.tgt.x-v.x,dy=v.tgt.y-v.y,d=Math.hypot(dx,dy);if(d<3){v.tgt=null;v.wait=1.5+Math.random()*4;v.walking=0;return;}
  var sp=32*dt,nx=v.x+dx/d*sp,ny=v.y+dy/d*sp;
- if(!villStand(nx,ny)||Math.hypot(nx-pl.x,ny-pl.y)<20){v.tgt=null;v.wait=.8+Math.random()*2;v.walking=0;return;}
+ if(!villStand(nx,ny)||Math.hypot(nx-pl.x,ny-pl.y)<26||nearDoor(nx,ny)||pinsPlayer(nx,ny)){v.tgt=null;v.wait=.8+Math.random()*2;v.walking=0;return;}
  v.x=nx;v.y=ny;v.walking=1;v.ph+=dt*9;v.dir=Math.abs(dx)>Math.abs(dy)?(dx<0?1:2):(dy<0?3:0);}
+function nearDoor(x,y){for(var i=0;i<BLD.length;i++){var d=bdoor(BLD[i]);if(Math.abs(x-d.x)<18&&y>d.y-6&&y-d.y<26)return true;}return false;}
+function pinsPlayer(x,y){if(Math.hypot(x-pl.x,y-pl.y)>40)return false;var ok=0,a;for(a=0;a<8;a++){var px=pl.x+Math.cos(a*.785)*10,py=pl.y+Math.sin(a*.785)*10;if(Math.hypot(px-x,py-y)>=15&&terrStand(px,py))ok++;}return ok<2;}
+function terrStand(x,y){var t0=tileAt(pl.x,pl.y),h0=th(t0),p=[[x-6,y-3],[x+6,y-3],[x-6,y+3],[x+6,y+3]];
+ for(var i=0;i<4;i++){var t=tileAt(p[i][0],p[i][1]);if(!passable(t))return false;if(Math.abs(th(t)-h0)>.6)return false;}return !hitStatic(x,y,7);}
+function freeAt(x,y){if(!terrStand(x,y))return false;for(var j=0;j<vill.length;j++)if(Math.hypot(x-vill[j].x,y-vill[j].y)<17)return false;return true;}
+var DXU=[1,-1,0,0],DYU=[0,0,1,-1];function unstick(far){var r,a;for(r=far?20:4;r<=T*8;r+=4)for(a=0;a<16;a++){var x=pl.x+Math.cos(a*.3927)*r,y=pl.y+Math.sin(a*.3927)*r;if(freeAt(x,y)&&(r<24&&!far||[0,1,2,3].filter(function(k){return freeAt(x+DXU[k]*12,y+DYU[k]*12)}).length>=3)){pl.x=x;pl.y=y;pl.tx=null;return true;}}return false;}
 function canStand(x,y){if(scene==="house")return houseStand(x,y);var t0=tileAt(pl.x,pl.y),h0=th(t0),p=[[x-6,y-3],[x+6,y-3],[x-6,y+3],[x+6,y+3]];
  for(var i=0;i<4;i++){var t=tileAt(p[i][0],p[i][1]);if(!passable(t))return false;if(Math.abs(th(t)-h0)>.6)return false;}
- if(hitStatic(x,y,7))return false;for(var j=0;j<vill.length;j++)if(Math.hypot(x-vill[j].x,y-vill[j].y)<15)return false;return true;}
+ if(hitStatic(x,y,7)&&!hitStatic(pl.x,pl.y,7))return false;for(var j=0;j<vill.length;j++){var nd=Math.hypot(x-vill[j].x,y-vill[j].y);if(nd<15&&nd<=Math.hypot(pl.x-vill[j].x,pl.y-vill[j].y)){var w=vill[j];if(!w.still&&w!==talkV&&scene==='island'){var ex=w.x-x,ey=w.y-y,el=Math.hypot(ex,ey)||1;if(villStand(x+ex/el*16,y+ey/el*16)&&!hitStatic(x+ex/el*16,y+ey/el*16,8))continue;}return false;}}return true;}
 function houseStand(x,y){if(x<22||x>RW*T-22||y<3*T+8||y>RH*T-2)return false;if(y>RH*T-14&&Math.abs(x-RW*T/2)>T*.7)return false;
  for(var i=0;i<save.room.length;i++){var f=save.room[i];if(nm(f.e)==="Cozy Rug")continue;if(x+6>f.x*T+3&&x-6<f.x*T+T-3&&y+3>f.y*T+12&&y-3<f.y*T+T)return false;}return true;}
 function surface(){if(scene==="house")return"wood";var t=tileAt(pl.x,pl.y);return t===SAND?"sand":t===BRIDGE?"wood":"grass";}
@@ -599,12 +605,13 @@ function updCam(dt,snap){zoom=curZoom();var vw=innerWidth/zoom,vh=innerHeight/zo
  if(scene==="house"){cam.x=RW*T/2-vw/2;cam.y=RH*T/2-vh/2+20;return;}
  var tx=pl.x-vw/2,ty=pl.y-18-vh/2;tx=vw>=WW*T?(WW*T-vw)/2:clamp(tx,0,WW*T-vw);ty=vh>=WH*T?(WH*T-vh)/2:clamp(ty,0,WH*T-vh);
  if(snap){cam.x=tx;cam.y=ty;}else{var k=1-Math.exp(-dt*5);cam.x+=(tx-cam.x)*k;cam.y+=(ty-cam.y)*k;}}
-function updPlayer(dt){var mx=0,my=0,busy=open||swing||fadeBusy;
+function updPlayer(dt){var mx=0,my=0,busy=open||swing||fadeBusy;if(scene==='island')vill.forEach(function(v){if(v.still||v===talkV)return;var dx=v.x-pl.x,dy=v.y-pl.y,d=Math.hypot(dx,dy)||1;if(d<16){var nx=pl.x+dx/d*16,ny=pl.y+dy/d*16;if(villStand(nx,ny)){v.x=nx;v.y=ny;}}});
+ if(scene==='island'&&!busy&&(hitStatic(pl.x,pl.y,7)||vill.some(function(v){return Math.hypot(pl.x-v.x,pl.y-v.y)<11;})))unstick();
  if(!busy){if(keys.arrowleft||keys.a)mx--;if(keys.arrowright||keys.d)mx++;if(keys.arrowup||keys.w)my--;if(keys.arrowdown||keys.s)my++;}
  if(fishing){if(mx||my){fishing=null;toast("You reeled in your line.");}else{pl.moving=false;pl.ph=0;return;}}
  if(mx||my){pl.tx=null;pl.goal=null;}else if(pl.tx!=null&&!busy){var dx=pl.tx-pl.x,dy=pl.ty-pl.y,d=Math.hypot(dx,dy);if(d<4){pl.tx=null;if(pl.goal){var g=pl.goal;pl.goal=null;var t=target();if(t&&t.k==="talk"&&t.v===g)talk(g);}}else{mx=dx/d;my=dy/d;}}
  pl.run=!!keys.shift;var sp=(pl.run?150:92)*dt;
- if(mx||my){var l=Math.hypot(mx,my);mx/=l;my/=l;pl.dir=Math.abs(mx)>Math.abs(my)?(mx<0?1:2):(my<0?3:0);var mv=false;if(canStand(pl.x+mx*sp,pl.y)){pl.x+=mx*sp;mv=true;}if(canStand(pl.x,pl.y+my*sp)){pl.y+=my*sp;mv=true;}if(!mv)pl.tx=null;pl.moving=mv;}else pl.moving=false;
+ if(mx||my){var l=Math.hypot(mx,my);mx/=l;my/=l;pl.dir=Math.abs(mx)>Math.abs(my)?(mx<0?1:2):(my<0?3:0);var mv=false;if(canStand(pl.x+mx*sp,pl.y)){pl.x+=mx*sp;mv=true;}if(canStand(pl.x,pl.y+my*sp)){pl.y+=my*sp;mv=true;}if(!mv)pl.tx=null;pl.moving=mv;if(!busy){if(!pl.sa||Math.hypot(pl.x-pl.sa.x,pl.y-pl.sa.y)>14)pl.sa={x:pl.x,y:pl.y,t:0};pl.sa.t+=dt;if(pl.sa.t>2){pl.sa=null;if(scene==='island'&&unstick(1))toast('Oops, you were stuck — hopped you to an open spot!');}}}else{pl.moving=false;pl.sa=null;}
  if(pl.moving){pl.ph+=dt*(pl.run?16:11);pl.stepT-=dt;if(pl.stepT<=0){pl.stepT=pl.run?.21:.32;sfx("step",surface());}}else pl.ph=0;
  if(!busy&&scene==="island"&&my<0){var hd=bdoor(HOME);if(Math.abs(pl.x-hd.x)<14&&pl.y>hd.y-2&&pl.y-hd.y<14)enterHouse();}
  if(!busy&&scene==="house"&&my>0&&pl.y>RH*T-12&&Math.abs(pl.x-RW*T/2)<T)exitHouse();}
