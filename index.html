@@ -1149,7 +1149,96 @@ function answer(s){var q=quiz;if(!q)return;if(String(s).trim()===""&&q.diff!=="e
  if(ok){st[1]++;save.streak++;var g=PTS[q.diff]+(save.streak%5===0?20:0)+(q.wt?5:0),was=ready();save.pts+=g;save.xp=Math.min(need(),save.xp+PTS[q.diff]);store();burst();sfx("correct");sparkle(v.x,v.y-60,"♥","#ff6a9a");
   say(v,pick(YAY)+" You earned +"+g+" points and +"+PTS[q.diff]+" XP!",(q.wt?"<div class='note'>🦉 You got it! Includes a +5 \"you got it\" bonus from Professor Hoot.</div>":"")+(save.streak%5===0?"<div class='note'>🔥 Includes a 5-in-a-row bonus!</div>":"")+(!was&&ready()?"<div class='hint'>🌟 Your XP bar is full! Visit Professor Hoot for your Level-Up Test!</div>":"")+fg+again+"<button class='btn' onclick='talk(V(\""+q.who+"\"))'>Change level</button><button class='btn' onclick='closeDlg()'>Done</button>");}
  else{save.streak=0;store();sfx("wrong");
-  say(v,pick(OOPS),"<div class='qtext'>"+esc(q.text)+"</div><div class='hint'>💡 "+esc(q.hint)+"\n\nThe answer is <b>"+corr(q)+"</b>.</div>"+extra+fg+again+"<button class='btn' onclick='closeDlg()'>Take a break</button>");}}
+  exStart(q,s,q.who,extra+fg);}}
+// ---------- Wrong-answer walkthroughs (step by step, with real numbers) ----------
+var EXASK={e0:"What percent of the 100-square grid is shaded?",e1:"We need a benchmark percent (like 50%, 25%, 10% or 1%) of a number.",e2:"How many cents is that percent of one dollar?",e3:"We need to change a fraction into a percent.",
+ m0:"We need to find a percent OF a number (the part).",m1:"We need to find what percent one number is of another.",m2:"We need to find a 15% tip on a bill.",
+ h0:"We know a part and its percent. We need the WHOLE.",h1:"We need the final price after a discount AND then tax.",h2:"We need the percent the amount went up or down.",h3:"We need to find which store is cheaper, and by how much.",
+ uA:"We need the missing number that makes the two fractions equal.",uB:"This is a percent problem. We can write it as part/whole = percent/100.",uC:"We need to solve a proportion that has an expression in it.",
+ uD:"We need a matching amount using a scale or a recipe.",uE:"We need a unit rate: how much for exactly ONE unit.",uF:"Is the table proportional? If it is, what is k?",
+ uG:"We need to use the equation y = kx (k is the constant of proportionality).",uH:"Is the graph proportional? If it is, what is k?",uI:"This is a real-world money or percent problem.",uJ:"This is a multi-step challenge problem."};
+var EXSTRAT={e0:"Percent means \"out of 100\". The grid has 100 squares, so we just count the shaded ones.",e1:"Benchmarks are easy fractions, so we can divide instead of multiplying.",e2:"A dollar is 100 cents, so the percent IS the number of cents.",
+ e3:"Percent means out of 100, so we make the bottom number 100.",m0:"10% is easy (move the decimal one place), so we build the percent from 10% pieces.",m1:"Part ÷ whole gives a decimal, and × 100 turns it into a percent.",
+ m2:"15% = 10% + 5%, and both of those are easy to find.",h0:"If we find 1%, we can multiply by 100, because the whole is 100%.",h1:"A discount means you pay LESS, so we subtract it first. Tax means you pay MORE, so we add it after.",
+ h2:"Percent change compares the change to the ORIGINAL number, because that is where we started.",h3:"We find each store's final price, then subtract to compare them.",
+ uA:"Equal fractions have equal cross-products, so we cross-multiply, then divide.",uB:"Percent means out of 100, so we set part/whole = percent/100, then cross-multiply.",
+ uC:"We cross-multiply, then distribute, then undo the + or −, and divide last.",uD:"We keep the units in the same places in both ratios, then cross-multiply.",
+ uE:"Unit rate = first amount ÷ second amount. Dividing by a fraction? Keep, change, flip.",uF:"k = y ÷ x. If every row gives the SAME k, it is proportional.",
+ uG:"k is the number you multiply x by to get y, so k = y ÷ x.",uH:"A proportional graph is a straight line through (0, 0), and k = y ÷ x for any point on it.",uJ:"Big problems are just small steps in a row, so we do one step at a time."};
+var EXREM={uI:"Find the percent amount first, then ask: does it make the price go UP (add) or DOWN (subtract)?"};
+function exNum(s){var v=parseNum(s);if(isNaN(v)){var m=String(s).replace(/[$%,]/g,"").match(/-?\d*\.?\d+/g);if(m)v=parseFloat(m[m.length-1]);}return v;}
+function exNear(a,b){return Math.abs(a-b)<0.011;}
+function exEqs(W){var E=[];W.steps.forEach(function(s){s.eq.forEach(function(e){E.push(e);});});return E;}
+function exPcts(W){var o=[];exEqs(W).forEach(function(e){var m=e.replace(/\$/g,"").match(/^([\d.]+) × ([\d.]+) ÷ 100 = ([\d.]+)$/);if(m)o.push({B:+m[1],r:+m[2],a:+m[3]});});return o;}
+function exWord(q){var t=q.text.toLowerCase();return /tip/.test(t)?"tip":/tax/.test(t)?"tax":/mark(ed)? ?up/.test(t)&&!/marked down/.test(t)?"markup":/interest/.test(t)?"interest":/commission/.test(t)?"commission":/fee/.test(t)?"fee":/off|discount|marked down|sale/.test(t)?"discount":"";}
+function exChange(q,W){var c=null;if(!(q.type==="h2"||(q.type==="uI"&&q.isub>=7)))return null;exEqs(W).some(function(e){var m=e.match(/^([\d.]+) ÷ ([\d.]+) = ([\d.]+)$/);if(m){c={ch:+m[1],o:+m[2],d:+m[3]};return true;}});return c;}
+function exMistake(q,s,W){if(s==null||String(s).trim()==="")return"";var t=String(s).toLowerCase(),ans=q.ans,v=exNum(s);
+ if(q.kind==="kno"){var no=isNo(t);if(q.ans==="no"&&!no)return"You said it's proportional. But the k values (y ÷ x) are NOT all the same, or the line doesn't go through (0, 0). So it is NOT proportional.";
+  if(q.ans!=="no"&&no)return"You said it's not proportional. But every pair gives the same k ("+nf(ans)+"), so it IS proportional.";}
+ if(typeof ans!=="number"||isNaN(v))return"";
+ if(/^u[EFGH]$/.test(q.type)&&ans!==1&&exNear(v,1/ans))return"It looks like you divided x ÷ y, so k came out flipped. k is y ÷ x: the amount for ONE x.";
+ var C=exChange(q,W);if(C){var nums=(q.text.replace(/,/g,"").match(/\d*\.?\d+/g)||[]).map(Number),err=q.type==="uI"&&q.isub===9;
+  for(var i=0;i<nums.length;i++){var N=nums[i];if(N&&N!==C.o&&exNear(v,r2(C.ch/N*100)))return err?"It looks like you divided by your estimate ("+N+"). For percent error we divide by the ACTUAL amount ("+C.o+").":"It looks like you divided by the new number ("+N+"). For percent change we always divide by the ORIGINAL number ("+C.o+").";}
+  if(exNear(v,C.ch))return"You found the change ("+C.ch+") — nice! But we still need to divide by "+C.o+" and × 100 to turn it into a percent.";
+  if(exNear(v,C.d))return"So close! "+nf(C.d)+" is the decimal. Multiply by 100 to turn it into a percent.";}
+ var P=exPcts(W),wd=exWord(q);
+ for(var j=0;j<P.length;j++){var p=P[j];
+  if(exNear(v,r2(p.B*p.r))&&p.r!==1)return"It looks like you multiplied by "+p.r+" instead of "+p.r+"%. A percent must become a decimal first: "+p.r+"% = "+nf(p.r/100)+".";
+  if(exNear(ans,r2(p.B+p.a))||exNear(ans,r2(p.B+p.a+0))){if(exNear(v,r2(p.B-p.a)))return"It looks like you subtracted the "+(wd||"extra amount")+". "+(wd?wd[0].toUpperCase()+wd.slice(1):"It")+" means you pay MORE, so we add it.";
+   if(exNear(v,p.a))return"You found the "+(wd||"percent amount")+" ("+nf(p.a)+") — great! The question asks for the TOTAL, so we still add it to "+nf(p.B)+".";}
+  if(exNear(ans,r2(p.B-p.a))){if(exNear(v,r2(p.B+p.a)))return"It looks like you added the discount. A discount means you pay LESS, so we subtract it.";
+   if(exNear(v,p.a))return"You found the discount ("+nf(p.a)+") — great! The question asks for the NEW price, so we still subtract it from "+nf(p.B)+".";}}
+ if(q.type==="m1"&&q.v&&exNear(v,r2(q.v.w/q.v.part*100)))return"It looks like you put the whole on top. The number after \"of\" is the whole, and it goes on the BOTTOM.";
+ if(ans&&(exNear(v,ans*100)||exNear(v,ans/100)))return"Your digits are right, but the decimal point moved two places. Remember: percent ↔ decimal means moving the dot two places.";
+ if(ans&&(exNear(v,ans*10)||exNear(v,ans/10)))return"Your digits are right, but the decimal point is one place off. Let's line it up carefully.";
+ if(Math.abs(v-ans)<=Math.max(1,Math.abs(ans)*0.05))return"You were really close! It was probably a small arithmetic slip. Let's check each step.";
+ return"";}
+function exCheck(q,W){var a=q.ans,P=exPcts(W),C=exChange(q,W);
+ if(q.type==="uA"){var m=q.text.match(/([\d.]+|[a-z])\s*\/\s*([\d.]+|[a-z])\s*=\s*([\d.]+|[a-z])\s*\/\s*([\d.]+|[a-z])/);if(m){var x=[m[1],m[2],m[3],m[4]].map(function(z){return /[a-z]/.test(z)?nf(a):z;});
+  if(exNear(x[0]*x[3],x[1]*x[2]))return{t:"Check: put "+nf(a)+" back in. The two cross-products match, so the fractions are equal!",eq:[x[0]+" × "+x[3]+" = "+nf(x[0]*x[3]),x[1]+" × "+x[2]+" = "+nf(x[1]*x[2])]};}}
+ if(C&&typeof a==="number")return{t:"Check: "+a+"% of the original "+C.o+" should equal the change, "+C.ch+".",eq:[C.o+" × "+a+" ÷ 100 = "+nf(C.ch)]};
+ if(q.kind==="kno"&&q.ans!=="no"){var pt=q.table?q.table.r.map(function(r){return[+r[0],+r[1]];}).filter(function(r){return!isNaN(r[0])&&!isNaN(r[1])&&r[0];})[0]:q.graph?q.graph.pts.filter(function(p){return p[0];})[0]:null;
+  if(pt&&exNear(a*pt[0],pt[1]))return{t:"Check: k times x should give y. Try x = "+pt[0]+".",eq:[nf(a)+" × "+pt[0]+" = "+nf(pt[1])]};}
+ if(P.length===1&&typeof a==="number"&&!q.pct){var p=P[0];if(exNear(a,r2(p.B+p.a)))return{t:"Check: we added, so the answer should be MORE than "+nf(p.B)+". It is, by exactly the "+(exWord(q)||"percent amount")+".",eq:[nf(a)+" − "+nf(p.B)+" = "+nf(p.a)]};
+  if(exNear(a,r2(p.B-p.a)))return{t:"Check: a discount makes the price LESS than "+nf(p.B)+". Adding the discount back gives the original price.",eq:[nf(a)+" + "+nf(p.a)+" = "+nf(p.B)]};}
+ if(q.type==="m0"&&q.v)return{t:"Check: our part divided by the whole, × 100, should give back "+q.v.p+"%.",eq:[nf(a)+" ÷ "+q.v.n+" × 100 = "+q.v.p]};
+ if(q.type==="m1"&&q.v)return{t:"Check: "+a+"% of "+q.v.w+" should give back the part, "+q.v.part+".",eq:[q.v.w+" × "+a+" ÷ 100 = "+q.v.part]};
+ if(q.type==="e1"&&q.v)return{t:"Check: our answer is "+q.v.p+" out of every 100, so it should be "+q.v.p+"% of "+q.v.n+".",eq:[nf(a)+" ÷ "+q.v.n+" × 100 = "+q.v.p]};
+ return{t:"Check: read the question again with "+corr(q)+" as the answer. Does it make sense and look like a sensible size?",eq:[]};}
+function exBuild(q,s){var W=walk(q),ty=q.type,steps=[];
+ var ask=EXASK[ty];if(ty==="uI")ask=q.isub===9?"We need the percent error: how far off the estimate was, as a percent of the actual amount.":q.isub>=7?"We need the percent the amount went "+(/increase/.test(q.text)?"UP":"DOWN")+" compared to where it started.":"We need the final amount after a "+(exWord(q)||"percent")+" is "+(exWord(q)==="discount"?"taken off.":"added on.");
+ steps.push({h:"What is the question asking?",t:ask||"Let's read the question carefully.",eq:[],vis:null});
+ var strat=EXSTRAT[ty];if(ty==="uI"){var w=exWord(q);strat=q.isub===9?"Percent error compares how far off the estimate was to the ACTUAL amount.":q.isub>=7?"Percent change compares the change to the ORIGINAL number, because that is where we started.":w==="discount"?"A discount means you pay LESS, so we find it and then subtract.":"A "+(w||"percent amount")+" means you pay (or get) MORE, so we find it and then add.";}
+ steps.push({h:"The plan",t:strat||"We break it into small steps.",eq:[],vis:null});
+ var body=W.steps.filter(function(st,i){return!/^(Read carefully|Challenge!|Answer:)/.test(st.t);});
+ body.forEach(function(st,i){steps.push({h:"Step "+(i+1),t:st.t,eq:st.eq,vis:st.vis});});
+ steps.push({h:"The answer",t:"So the answer is "+corr(q)+".",eq:[],vis:null});
+ var c=exCheck(q,W);steps.push({h:"Check it",t:c.t,eq:c.eq,vis:null});
+ return{steps:steps,tip:EXREM[ty]||W.tip||q.tip||"Go one small step at a time.",mis:exMistake(q,s,W)};}
+var EX=null;
+function exStart(q,s,who,extra){var v=V(who||q.who||"Professor Hoot")||V("Professor Hoot");EX={q:q,s:s,who:v.n,i:0,x:extra||"",b:exBuild(q,s)};exShow();}
+function exShow(){var E=EX,b=E.b,n=b.steps.length,st=b.steps[E.i],v=V(E.who);talkV=v;
+ var top="<div class='qhead'>🧩 LET'S SOLVE IT TOGETHER · "+(E.i+1)+" of "+(n+1)+"</div><div class='qtext' style='font-size:15px'>"+esc(E.q.text)+"</div>"+u1Vis(E.q);
+ if(E.i===0){top+="<div class='note' id='exyou'>You answered <b>"+esc(String(E.s==null||E.s===""?"(blank)":E.s))+"</b>. The answer is <b>"+esc(String(corr(E.q)))+"</b>.</div>";if(b.mis)top+="<div class='hint' id='exmis'>🤔 What probably happened: "+esc(b.mis)+"</div>";}
+ var eq=st.eq.length?"<div class='hint wteq exeq' style='font-size:20px;font-weight:800'>"+st.eq.map(esc).join("<br>")+"</div>":"";
+ say(v,(E.i===0?"Let's figure it out together, "+pname()+". ":"")+st.h+(/\?$/.test(st.h)?" ":": ")+st.t,top+"<div class='exstep' style='font-size:17px;margin:6px 0'><b>"+esc(st.h)+":</b> "+esc(st.t)+"</div>"+eq+"<div style='text-align:center'>"+visSVG(st.vis)+"</div>"+(E.i===0?E.x:"")+
+  (E.i>0?"<button class='btn' id='exback' onclick='exNav(-1)'>◀ Back</button>":"")+"<button class='btn g' id='exnext' onclick='exNav(1)'>Next step ▶</button><button class='btn' onclick='EX=null;closeDlg()'>Take a break</button>");}
+function exNav(d){if(!EX)return;EX.i=Math.max(0,EX.i+d);sfx("menu");if(EX.i>=EX.b.steps.length)exEnd();else exShow();}
+function exEnd(){var E=EX,v=V(E.who);talkV=v;say(v,"Remember: "+E.b.tip,"<div class='qhead'>🌟 REMEMBER</div><div class='note exrem' style='font-size:17px'>"+esc(E.b.tip)+"</div><div class='note'>Ready, "+esc(pname())+"? Try one just like it with new numbers.</div><button class='btn g' id='exsim' onclick='exSimilar()'>Try a similar one</button><button class='btn' onclick='exNav(-1)'>◀ Back</button><button class='btn' onclick='EX=null;closeDlg()'>Take a break</button>");}
+function exSimilar(){if(!EX)return;var o=EX.q,who=EX.who,q=genType(o.u1?o.type+":"+o.diff:o.type),v=V(who);EX=null;q.who=who;quiz=q;talkV=v;
+ say(v,"Here's a similar one, "+pname()+". Use the same steps!","<div class='qhead'>SIMILAR ONE · "+String(q.diff).toUpperCase()+" · +"+PTS[q.diff]+" ⭐</div>"+qBody(q,"answer")+" <button class='btn' onclick='closeDlg()'>Later</button><div id='clue'></div>");clueBar();}
+var EXR=[];function exRev(i){var r=EXR[i];if(r)exStart(r.q,r.s,"Professor Hoot");}
+// ---------- Save backup code ----------
+function saveCode(){var j=JSON.stringify(save);return"PI1-"+btoa(unescape(encodeURIComponent(j)));}
+function readCode(c){c=String(c||"").replace(/\s+/g,"");if(!c)return null;var o=null;try{if(c[0]==="{")o=JSON.parse(c);else o=JSON.parse(decodeURIComponent(escape(atob(c.replace(/^PI1-/,"")))));}catch(e){return null;}
+ if(!o||typeof o!=="object"||Array.isArray(o)||typeof o.pts!=="number"||!Array.isArray(o.items))return null;return o;}
+function loadCode(c,noAsk){var o=readCode(c);if(!o)return"That code doesn't look right. Make sure you copied the whole thing (it starts with PI1-).";
+ if(!noAsk&&!confirm("Replace "+pname()+"'s island on this device with this save code? (Level "+(o.level||1)+", "+o.pts+" ⭐)"))return"Nothing changed.";
+ try{localStorage.setItem("pi_import_tmp",JSON.stringify(o));}catch(e){return"Couldn't save on this device.";}
+ save=loadSave("pi_import_tmp");try{localStorage.removeItem("pi_import_tmp")}catch(e){}relocate();rebuildColliders();conf=[];drops=[];fishing=null;swing=null;test=null;scene="island";curH=null;pl.x=33*T;pl.y=31*T;pl.tx=null;snapCam();store();
+ return"Save loaded ✔ Level "+save.level+", "+save.pts+" ⭐, "+(save.items.length+save.bag.length)+" items.";}
+function saveCodeUI(){if(!parentOpen)return stats();var c=saveCode();panel("<h3>💾 Copy save code — "+esc(pname())+"</h3><div class='note'>This code holds the character, level, stars, items and progress. Paste it into <b>Load save code</b> after an update or on another device.</div><textarea id='savecode' readonly style='width:100%;height:120px;font-size:11px' onclick='this.select()'>"+esc(c)+"</textarea><br><button class='btn g' id='sc_copy' onclick='var t=document.getElementById(\"savecode\");t.select();try{navigator.clipboard.writeText(t.value).then(function(){toast(\"Save code copied ✔\")},function(){document.execCommand(\"copy\");toast(\"Save code copied ✔\")})}catch(e){document.execCommand(\"copy\");toast(\"Save code copied ✔\")}'>📋 Copy</button><button class='btn' onclick='parentSettings()'>◀ Back</button>");}
+function loadCodeUI(msg){if(!parentOpen)return stats();panel("<h3>📥 Load save code — "+esc(pname())+"</h3>"+(msg?"<div class='note' id='lc_msg'>"+esc(msg)+"</div>":"")+"<div class='note'>Paste a save code here. It will replace this player's island on this device.</div><textarea id='loadcode' style='width:100%;height:120px;font-size:11px' placeholder='PI1-...'></textarea><br><button class='btn g' id='lc_go' onclick='loadCodeUI(loadCode(document.getElementById(\"loadcode\").value))'>Load</button><button class='btn' onclick='parentSettings()'>◀ Back</button>");}
 // ---------- Unit 1 practice test ----------
 var PT=null;
 function ptStart(){PT={qs:u1Practice(),i:0,res:[]};talkV=V("Professor Hoot");ptQ();}
@@ -1158,7 +1247,7 @@ function ptAnswer(s,skip){if(!PT)return;var q=PT.qs[PT.i];if(!skip&&String(s).tr
 function ptEnd(){var by={},c=0,pt=PT;pt.qs.forEach(function(q,i){var b=by[q.type]||(by[q.type]=[0,0]);b[1]++;if(pt.res[i].ok){b[0]++;c++;}});
  save.u1pt.push({d:todayStr(),c:c,n:pt.qs.length,by:by});if(save.u1pt.length>10)save.u1pt.shift();var g=c*5;save.pts+=g;store();PT=null;burst(30);sfx("correct");
  var h="<div class='qhead'>📝 PRACTICE TEST RESULTS</div><div class='note' style='font-size:20px'>Score: <b>"+c+" / "+pt.qs.length+"</b> ("+Math.round(100*c/pt.qs.length)+"%) · +"+g+" ⭐</div>"+ptTable(by)+"<b>Review:</b><div style='max-height:220px;overflow:auto;font-size:14px'>";
- pt.qs.forEach(function(q,i){var r=pt.res[i];h+="<div style='margin:4px 0;padding:4px 8px;border-radius:8px;background:"+(r.ok?"#e8f8e0":"#ffe8e8")+"'>"+(r.ok?"✅":"❌")+" <b>"+(i+1)+".</b> "+esc(q.text)+"<br><small>Your answer: "+esc(r.a)+" · Correct: <b>"+esc(q.ansText)+"</b></small></div>";});
+ EXR=[];pt.qs.forEach(function(q,i){var r=pt.res[i];if(!r.ok)EXR.push({q:q,s:r.a});h+="<div style='margin:4px 0;padding:4px 8px;border-radius:8px;background:"+(r.ok?"#e8f8e0":"#ffe8e8")+"'>"+(r.ok?"✅":"❌")+" <b>"+(i+1)+".</b> "+esc(q.text)+"<br><small>Your answer: "+esc(r.a)+" · Correct: <b>"+esc(q.ansText)+"</b></small>"+(r.ok?"":" <button class='btn b exrev' style='padding:2px 8px;font-size:12px' onclick='exRev("+(EXR.length-1)+")'>🧩 Explain</button>")+"</div>";});
  say(V("Professor Hoot"),c>=20?"Outstanding! You're ready for Monday!":c>=15?"Nice work! Review the red topics and you'll be set.":"Good practice! Let's work on the red topics together — ask me to Show you how.",h+"</div><button class='btn g' onclick='ptStart()'>Take another</button><button class='btn' onclick='closeDlg()'>Done</button>");}
 function ptTable(by){var h="<table class='t'><tr><th>Topic</th><th>Score</th></tr>";Object.keys(U1T).forEach(function(k){var b=by[k];if(!b)return;var weak=b[0]/b[1]<.6;h+="<tr class='"+(weak?"weak":"")+"'><td>"+(weak?"⚠️ ":"")+U1T[k]+"</td><td>"+b[0]+" / "+b[1]+"</td></tr>";});return h+"</table>";}
 function ptReport(){if(!save.u1pt||!save.u1pt.length)return"";var L=save.u1pt[save.u1pt.length-1];return"<b>📝 Unit 1 Practice Tests</b> (last: "+L.d+", "+L.c+"/"+L.n+")  History: "+save.u1pt.map(function(t){return t.c+"/"+t.n;}).join(", ")+ptTable(L.by);}
@@ -1171,7 +1260,7 @@ function finishTest(){var n=test.res.length,c=test.res.filter(function(r){return
  if(c/n>=0.8){var oc=cap();save.xp-=need();save.level++;save.xp=Math.max(0,save.xp);save.tests.passed++;store();test=null;sfx("levelup");for(var k=0;k<4;k++)setTimeout(function(){burst(80)},k*300);
   say(H,"LEVEL UP! You're now Level "+save.level+"! You scored "+c+"/"+n+" ("+pct+"%). I'm SO proud of you! Hoo-hoo!",(cap()>oc?"<div class='hint'>🎒 Your bag grew to "+cap()+" slots!</div>":"")+"<button class='btn g' onclick='closeDlg()'>Hooray!</button>");}
  else{var h="<div class='note'>You need 80% to pass. Your XP is safe, and you can try again anytime!</div>";
-  test.res.filter(function(r){return!r.ok;}).forEach(function(r){h+="<div class='hint'><b>"+esc(r.q.text)+"</b>\nYou said: "+esc(r.s||"(blank)")+" · Answer: <b>"+corr(r.q)+"</b>\n💡 "+esc(r.q.hint)+"</div>";});
+  EXR=[];test.res.filter(function(r){return!r.ok;}).forEach(function(r){EXR.push(r);h+="<div class='hint'><b>"+esc(r.q.text)+"</b>\nYou said: "+esc(r.s||"(blank)")+" · Answer: <b>"+corr(r.q)+"</b></div><button class='btn b exrev' onclick='exRev("+(EXR.length-1)+")'>🧩 Show me step by step</button>";});
   test=null;sfx("wrong");say(H,"Nice effort! You scored "+c+"/"+n+" ("+pct+"%). Let's look at the ones to practice.",h+"<button class='btn r' onclick='startTest()'>Try the test again</button><button class='btn' onclick='closeDlg()'>Practice first</button>");}}
 // ---------- shop ----------
 function saleIdx(cat){return(dayIdx()*7+{animals:0,houses:3,plants:5,furniture:2,tools:1,garden:0,clothing:4,pets:2,decor:3,records:1}[cat])%CAT[cat].length;}
@@ -1216,7 +1305,7 @@ function pinStatus(){var P=save.pin;if(!P.set)return"";if(P.mode==="open"||!P.h)
 function parentGear(){if(!parentOpen)return stats();parentSettings();}
 function parentSettings(msg){if(!parentOpen)return stats();var P=save.pin;panel("<h3>⚙️ Parent Settings — "+esc(pname())+"</h3>"+(msg?"<div class='note'>"+msg+"</div>":"")+"<div class='note'>Shop purchases: <b>"+(!P.set?"not set up yet":P.mode==="open"||!P.h?"open (no PIN needed)":"need grown-up PIN")+"</b>"+(P.h&&P.mode!=="open"?" · approved purchases left: <b>"+P.left+"</b>":"")+"<br><small>Selling crops, fish and bugs never needs a PIN.</small></div>"+
  "<button class='btn b' id='ps_pin' onclick='pinBuf=\"\";pinStep={k:\"new\",first:null};pinRedraw()'>"+(P.h?"Change PIN":"Create a PIN")+"</button>"+(P.h?"<button class='btn g' id='ps_req' onclick='save.pin.mode=\"ask\";save.pin.left=0;store();parentSettings(\"Purchases now need the PIN ✔\")'>Require approval for purchases</button><button class='btn y' id='ps_reset' onclick='save.pin.left=0;store();parentSettings(\"Approved purchases reset to 0 ✔\")'>Reset approved count</button>":"")+
- "<div class='note'>📘 Question mode: <b>"+(save.u1?"Unit 1 Test Prep":"Percent practice")+"</b> <button class='btn b' id='ps_u1' onclick='u1Toggle();parentSettings()'>Switch</button></div><br><button class='btn' onclick='closeDlg()'>Close</button>");}
+ "<div class='note'>📘 Question mode: <b>"+(save.u1?"Unit 1 Test Prep":"Percent practice")+"</b> <button class='btn b' id='ps_u1' onclick='u1Toggle();parentSettings()'>Switch</button></div><div class='note'>💾 <b>Save backup:</b> keep "+esc(pname())+"'s character, level, stars and items safe. <button class='btn b' id='ps_copy' onclick='saveCodeUI()'>Copy save code</button><button class='btn y' id='ps_load' onclick='loadCodeUI()'>Load save code</button></div><br><button class='btn' onclick='closeDlg()'>Close</button>");}
 function doBuy(cat,i){var it=CAT[cat][i],pr=priceOf(cat,i);
  if(cat==="clothing"||cat==="pets"||cat==="records"){if(owns(cat,it[0]))return shop(cat,"You already have that one!");if(save.pts<pr)return shop(cat,"That one needs "+pr+" ⭐ — answer a few more questions and come back!");save.pts-=pr;var msg;
   if(cat==="clothing"){save.wardrobe[it[0]]=1;save.look[OUTFIT[it[0]]?"outfit":"hat"]=it[0];msg="You're wearing your new "+it[1]+"! Change looks anytime in 👗 Wardrobe (in your bag).";}
